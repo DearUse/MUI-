@@ -1,0 +1,175 @@
+<html><head>
+		<meta charset="utf-8">
+		<title>Hello MUI</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1,user-scalable=no">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+		<link rel="stylesheet" href="mui.min.css">
+        <link rel="stylesheet" href="common.css">
+	</head>
+
+	<body>
+        <!--下拉刷新容器-->
+        <div id="pullrefresh" class="mui-content mui-scroll-wrapper">
+            <div class="mui-scroll">
+                <!--数据列表-->
+                <ul class="mui-table-view mui-table-view-chevron">
+                    <div class="shopMenu">
+                        <!--<div class="shopLi">
+                            <img src="images/com/shopExpem.png">
+                            <p class="more">雅思兰黛ANR眼霜秘籍...</p>
+                            <div class="shopPrice">
+                                <div class="shopPriceLe">拼团价：<span>￥200</span></div>
+                                <button style="padding: 0">去开团</button>
+                            </div>
+                        </div>-->
+                    </div>
+                </ul>
+            </div>
+        </div>
+
+        <script src="http://cdn.bootcss.com/jquery/3.2.1/jquery.js"></script>
+        <script src="jquery.lazyload.js"></script>
+        <script src="mui.min.js"></script>
+        <script type="text/javascript">
+
+
+        var loading = false;
+        mui.init
+        ({
+            pullRefresh: 
+            {
+            container: '#pullrefresh',
+            down: {
+                callback: pulldownRefresh
+            },
+            up: {
+                contentrefresh: '正在加载...',
+                contentnomore:'没有更多数据了',
+                callback: function(){
+                    pullupRefresh();
+                }
+            }
+            }
+        });
+            
+        /*
+        * 下拉刷新具体业务实现
+        */
+        function pulldownRefresh() 
+        {
+            setTimeout(function() 
+            {
+            // var table = document.body.querySelector('.mui-table-view');
+            // var cells = document.body.querySelectorAll('.mui-table-view-cell');
+            // //模拟数据
+            // for (var i = cells.length, len = i + 3; i < len; i++) {
+            //     var li = document.createElement('li');
+            //     li.className = 'mui-table-view-cell';
+            //     li.innerHTML = '<a class="mui-navigate-right">Item ' + (i + 1) + '</a>';
+            //     //下拉刷新，新纪录插到最前面；
+            //     table.insertBefore(li, table.firstChild);
+            // }
+
+            // $.ajax({  
+            //     type : "POST",  //提交方式  
+            //     url : "http://api.55bjg.com/index/goods/GetShopLists",//路径  
+            //     data : {  
+            //         "cart_id" : "44",
+            //         page :　page,
+            //         all : 1
+            //     },//数据，这里使用的是Json格式进行传输  
+            //     success : function(result) {//返回数据根据结果进行相应的处理  
+
+            //     },
+            //     error : function(){
+
+            //     }  
+            // });  
+            location = location;
+            mui('#pullrefresh').pullRefresh().endPulldownToRefresh(); //refresh completed
+            }, 1000);
+        }
+            
+        // var count = 0;
+        /*
+        * 上拉加载具体业务实现
+        */
+        var page = 1;
+        function pullupRefresh() 
+        {   
+            setTimeout(function() {
+            // mui('#pullrefresh').pullRefresh().endPullupToRefresh((++count > 2)); //参数为true代表没有更多数据了。
+            // var table = document.body.querySelector('.mui-table-view');
+            // var cells = document.body.querySelectorAll('.mui-table-view-cell');
+            
+            // for (var i = cells.length, len = i + 20; i < len; i++) {
+            //     var li = document.createElement('li');
+            //     li.className = 'mui-table-view-cell';
+            //     li.innerHTML = '<a class="mui-navigate-right">Item ' + (i + 1) + '</a>';
+            //     table.appendChild(li);
+            // }
+             
+            page++;
+            $.ajax({  
+                type : "POST",  //提交方式  
+                url : "http://api.55bjg.com/index/goods/GetShopLists",//路径  
+                data : {  
+                    "cart_id" : "44",
+                    page :　page,
+                    all : 1
+                },//数据，这里使用的是Json格式进行传输  
+                success : function(e) {//返回数据根据结果进行相应的处理  
+                    var data = JSON.parse(e).data
+                    console.log(page)
+                    if(data == ''){
+                        loading = true;
+                    }    
+                    mui('#pullrefresh').pullRefresh().endPullupToRefresh(loading == true); //为空时禁止
+                    console.log(data)
+                    var str = '';
+                    for(var i=0;i<data.length;i++){
+                        str += "<div class='shopLi'>"+
+                                    "<img class='lazy' src='"+'http://api.55bjg.com/'+data[i].ThumbnailUrl+"' data-original='"+'http://api.55bjg.com/'+data[i].ThumbnailUrl+"'>"+
+                                    "<p class='more'>"+data[i].Name+"</p>"+
+                                    "<div class='shopPrice'>"+
+                                        "<div class='shopPriceLe'>拼团价：<span>￥"+data[i].Group_Price+"</span></div>"+
+                                        "<button style='padding: 0'>去开团</button>"+
+                                    "</div>"+
+                                "</div>"
+                    }
+                    $('.shopMenu').append(str)
+                    //懒加载
+                    $("img.lazy").lazyload({
+                        effect:'fadeIn', //懒加载淡入
+                        threshold : 100,
+                        container: $("#pullrefresh")
+                    })
+                },
+                error : function(){
+
+                }  
+            }); 
+            }, 1000);
+        }
+            
+            
+            
+        if (mui.os.plus) {
+            mui.plusReady(function() {
+            setTimeout(function() {
+                mui('#pullrefresh').pullRefresh().pullupLoading();
+            }, 1000);
+
+            });
+        } else 
+        { 
+            mui.ready(function() {
+            mui('#pullrefresh').pullRefresh().pullupLoading();
+            });
+        }
+		
+        </script>
+
+</body></html>
